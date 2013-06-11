@@ -1,0 +1,18 @@
+{
+  "name": "tea-openerp",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app"
+  },
+  "dependencies": {
+	"restify": "~2.5.0",
+	"solr-client": "~0.2.6",
+	"xmlrpc": "~1.1.0"
+  },
+  "engines": {
+    "node": ">= 0.8.*",
+    "npm": "1.1.*"
+  }
+}
+
