@@ -5,7 +5,7 @@ var xmlrpc = require('xmlrpc'),
 
 // Creates an XML-RPC client. Passes the host information on where to
 // make the XML-RPC calls.
-var client = xmlrpc.createClient({ host: 'ec2-122-248-222-113.ap-southeast-1.compute.amazonaws.com', port: 8069, path: '/xmlrpc/common'})
+var client = xmlrpc.createClient({ host: '46.137.212.8', port: 8069, path: '/xmlrpc/common'})
 
 // Sends a method call to the XML-RPC server
 console.log("***************** LOGIN");
@@ -28,6 +28,7 @@ function readPartners() {
 		[ 3, 4 ], // IDs
 		[ 'name', 'title', 'email' ]
 	];
+	
 	client.setPathname('/xmlrpc/object');
 	client.methodCall('execute', params, function(error, value) {
 		// Results of the method response
@@ -36,6 +37,8 @@ function readPartners() {
 		
 		// Move on to the next
 		searchProducts();
+		
+		searchCategories();
 	});
 }
 
@@ -127,6 +130,11 @@ function searchPartners() {
 */
 function searchCategories() {
 	console.log("\n\n***************** SEARCH CATEGORIES");
+	
+	// Get a connection to TEA ready, so we'll be able to send our updates
+	var teaClient = restify.createJsonClient({
+	    url: 'http://localhost:8080'
+	});
 
 	var params = [
 		'cloudmall-dev',
@@ -175,15 +183,47 @@ function searchCategories() {
 				'product.category',
 				'read',
 				ids,
-//				[ 'name', 'title', 'email' ]
-				[ ]
+				[ 'id', 'name', 'parent_id']
+//				[ ]
 			];
 			client.setPathname('/xmlrpc/object');
 			client.methodCall('execute', params, function(error, value) {
 				// Results of the method response
 				if (error) console.log("error:", error);
 				console.log('Method response: ', value);
-				getNext(index + 1);
+				
+				// // Load it into SOLR
+				var documents = value;
+				// solr.addDocument(documents, function(err){
+				// 	if (err) throw err;
+				 	// getNext(index);
+				// });
+
+				// Send this category to TEA
+				var json = {
+					source: "junk",
+					categories: [ ]
+				};
+				
+				// Prepare the message to send to TEA's RESTful interface
+				for (var i = 0; i < documents.length; i++) {
+					var category = documents[i];
+					
+					// Change the id to 'external_id'
+					var id = category.id;
+					delete category.id;
+					category.external_id = id;
+					
+					json.categories.push(category);
+				}
+		
+				teaClient.post('/category', json, function(err, req, res, obj) {
+					//	console.log('%d -> %j', res.statusCode, res.headers);
+				    console.log('%j', obj);
+				 	getNext(index);
+				});
+				
+				//getNext(index + 1);
 			});
 		};
 
@@ -341,7 +381,7 @@ function searchProducts() {
 				'product.product',
 				'read',
 				ids,
-				[ 'id', 'name', 'price' ]
+				[ 'id', 'name', 'standard_price', 'qty_available', 'categ_id']
 //				[ ]
 			];
 			client.setPathname('/xmlrpc/object');
