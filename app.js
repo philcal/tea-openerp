@@ -381,7 +381,7 @@ function searchProducts() {
 				'product.product',
 				'read',
 				ids,
-				[ 'id', 'name', 'standard_price', 'qty_available', 'categ_id']
+				[ 'id', 'name', 'lst_price', 'qty_available', 'categ_id', 'image']
 //				[ ]
 			];
 			client.setPathname('/xmlrpc/object');
