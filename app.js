@@ -1,28 +1,96 @@
-
 var xmlrpc = require('xmlrpc'),
 	restify = require('restify');
-
 
 // Creates an XML-RPC client. Passes the host information on where to
 // make the XML-RPC calls.
 var client = xmlrpc.createClient({ host: '46.137.212.8', port: 8069, path: '/xmlrpc/common'})
 
-// Sends a method call to the XML-RPC server
-console.log("***************** LOGIN");
-client.methodCall('login', ['cloudmall-dev', 'admin', 'mouse1'], function (error, value) {
-	if (error) console.log("error:", error);
-	console.log('Method response: ', value)
+getCloudmallToken();
 
-	readPartners();
-});
+function getCloudmallToken() {
+	console.log("\n\n***************** GET TOKEN");
+	
+	// Get a connection to TEA ready, so we'll be able to get a token
+	var teaClient = restify.createJsonClient({
+	    url: 'http://localhost:8080'
+	});
+	
+	var json = { "projectName" : "cloudmall" };
+	
+	teaClient.post('/getToken', json, function(err, req, res, obj) {
+		var token = obj.access_token;
+		if (token == null || token == "") {
+			console.log("***************** NO TOKEN FOUND");
+			var documents = [ ];
+			console.log("***************** LOGIN");
+			// Sends a method call to the XML-RPC server
+			client.methodCall('login', ['cloudmall-dev', 'admin', 'mouse1'], function (error, value) {
+				if (error) console.log("error:", error);
+				console.log('Method response: ', value)
+				
+				documents = {
+					"projectName" : "cloudmall",
+					"description" : "tea-openerp token",
+					"host" : "46.137.212.8",
+					"port" : 8069,
+					"db_name" : "cloudmall-dev",
+					"db_uid" : value,
+					"db_user" : "admin",
+					"db_pass" : "mouse1",
+					"accessToken" : "33b68536a4cc468195276652dc3cd7db"
+				};
+				
+				newCloudmallToken(documents);
+			});
+		} else {
+			console.log("***************** TOKEN FOUND");
+			getCloudmallTokenDetails(token);
+		}
+	});
+}
 
-function readPartners() {
+function getCloudmallTokenDetails(token) {
+	console.log("\n\n***************** GET TOKEN DETAILS");
+	
+	// Get a connection to TEA ready, so we'll be able to get token details
+	var teaClient = restify.createJsonClient({
+	    url: 'http://localhost:8080'
+	});
+	
+	var json = { "accessToken" : token };
+	
+	teaClient.post('/getTokenDetails', json, function(err, req, res, obj) {
+		console.log("***************** LOGIN");
+		// Sends a method call to the XML-RPC server
+		client.methodCall('login', [obj.db_name, obj.db_user, obj.db_pass], function (error, value) {
+			if (error) console.log("error:", error);
+			console.log('Method response: ', value)
+				
+			readPartners(obj);
+		});
+	});
+}
+
+function newCloudmallToken(documents) {
+	console.log("\n\n***************** CREATE NEW TOKEN AND GET DETAILS");
+	
+	// Get a connection to TEA ready, so we'll be able to create new token and get it's details
+	var teaClient = restify.createJsonClient({
+	    url: 'http://localhost:8080'
+	});
+	
+	teaClient.post('/getNewToken', documents, function(err, req, res, obj) {
+		readPartners(obj);
+	});
+}
+
+function readPartners(tokenDetails) {
 	console.log("\n\n***************** READ PARTNERS");
 
 	var params = [
-		'cloudmall-dev',
-		1,
-		'mouse1',
+		tokenDetails.db_name,
+		tokenDetails.db_uid,
+		tokenDetails.db_pass,
 		'res.partner',
 		'read',
 		[ 3, 4 ], // IDs
@@ -36,19 +104,19 @@ function readPartners() {
 		console.log('Method response: ', value);
 		
 		// Move on to the next
-		searchProducts();
+		searchProducts(tokenDetails);
 		
-		searchCategories();
+		searchCategories(tokenDetails);
 	});
 }
 
-function searchPartners() {
+function searchPartners(tokenDetails) {
 	console.log("\n\n***************** SEARCH PARTNERS");
 
 	var params = [
-		'cloudmall-dev',
-		1,
-		'mouse1',
+		tokenDetails.db_name,
+		tokenDetails.db_uid,
+		tokenDetails.db_pass,
 		'res.partner',
 		'search',
 		[] // criteria
@@ -86,9 +154,9 @@ function searchPartners() {
 			
 			
 			var params = [
-				'cloudmall-dev',
-				1,
-				'mouse1',
+				tokenDetails.db_name,
+				tokenDetails.db_uid,
+				tokenDetails.db_pass,
 				'res.partner',
 				'read',
 				ids,
@@ -128,7 +196,7 @@ function searchPartners() {
  *	    id: 10,
  *	    property_stock_account_output_categ: false }
 */
-function searchCategories() {
+function searchCategories(tokenDetails) {
 	console.log("\n\n***************** SEARCH CATEGORIES");
 	
 	// Get a connection to TEA ready, so we'll be able to send our updates
@@ -137,9 +205,9 @@ function searchCategories() {
 	});
 
 	var params = [
-		'cloudmall-dev',
-		1,
-		'mouse1',
+		tokenDetails.db_name,
+		tokenDetails.db_uid,
+		tokenDetails.db_pass,
 		'product.category',
 		'search',
 		[] // criteria
@@ -177,9 +245,9 @@ function searchCategories() {
 			
 			
 			var params = [
-				'cloudmall-dev',
-				1,
-				'mouse1',
+				tokenDetails.db_name,
+				tokenDetails.db_uid,
+				tokenDetails.db_pass,
 				'product.category',
 				'read',
 				ids,
@@ -323,7 +391,7 @@ function searchCategories() {
     property_account_expense: false,
     taxes_id: [] }
 */
-function searchProducts() {
+function searchProducts(tokenDetails) {
 	console.log("\n\n***************** Upload products");
 	
 	// Get a connection to TEA ready, so we'll be able to send our updates
@@ -334,9 +402,9 @@ function searchProducts() {
 
 	// Use XMLRPC to get products from OpenERP
 	var params = [
-		'cloudmall-dev',
-		1,
-		'mouse1',
+		tokenDetails.db_name,
+		tokenDetails.db_uid,
+		tokenDetails.db_pass,
 		'product.product',
 		'search',
 		[] // criteria
@@ -375,9 +443,9 @@ function searchProducts() {
 			
 			// Now get a specific product's details
 			var params = [
-				'cloudmall-dev',
-				1,
-				'mouse1',
+				tokenDetails.db_name,
+				tokenDetails.db_uid,
+				tokenDetails.db_pass,
 				'product.product',
 				'read',
 				ids,
@@ -433,9 +501,3 @@ function searchProducts() {
 		
 	});
 }
-
-	
-
-
-
-
