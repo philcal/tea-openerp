@@ -1,9 +1,32 @@
 var xmlrpc = require('xmlrpc'),
-	restify = require('restify');
+	restify = require('restify'),
+	crypto = require('crypto');
 
 // Creates an XML-RPC client. Passes the host information on where to
 // make the XML-RPC calls.
 var client = xmlrpc.createClient({ host: '46.137.212.8', port: 8069, path: '/xmlrpc/common'})
+
+var encypt = function (input, callback) {
+	var md5Hmac = crypto.createHmac('md5', 'cloud123');
+    md5Hmac.update('mouse123')
+    var key = md5Hmac.digest('hex');
+	
+    var ciph = crypto.createCipher('aes-256-cbc', key);
+	var encoded = ciph.update(input,'utf8','hex') + ciph.final('hex');
+
+    callback(encoded);
+};
+
+var decypt = function (input, callback) {
+	var md5Hmac = crypto.createHmac('md5', 'cloud123');
+    md5Hmac.update('mouse123')
+    var key = md5Hmac.digest('hex');
+	
+    var deciph = crypto.createDecipher('aes-256-cbc', key);
+	var decoded = deciph.update(input,'hex','utf8') + deciph.final('utf8');
+
+    callback(decoded);
+};
 
 getCloudmallToken();
 
@@ -20,30 +43,40 @@ function getCloudmallToken() {
 	teaClient.post('/getToken', json, function(err, req, res, obj) {
 		var token = obj.access_token;
 		if (token == null || token == "") {
-			console.log("***************** NO TOKEN FOUND");
+			console.log("\n\n***************** NO TOKEN FOUND");
 			var documents = [ ];
-			console.log("***************** LOGIN");
+			console.log("\n\n***************** LOGIN");
 			// Sends a method call to the XML-RPC server
 			client.methodCall('login', ['cloudmall-dev', 'admin', 'mouse1'], function (error, value) {
 				if (error) console.log("error:", error);
 				console.log('Method response: ', value)
 				
-				documents = {
-					"projectName" : "cloudmall",
-					"description" : "tea-openerp token",
-					"host" : "46.137.212.8",
-					"port" : 8069,
-					"db_name" : "cloudmall-dev",
-					"db_uid" : value,
-					"db_user" : "admin",
-					"db_pass" : "mouse1",
-					"accessToken" : "33b68536a4cc468195276652dc3cd7db"
-				};
+				if (typeof value != "undefined" && value != null && value != false) {
+					var dbPass, accessToken;
+					encypt('mouse1', function (encoded) {
+						dbPass = encoded;
+					});
+					encypt('cloudmall|' + value, function (encoded) {
+						accessToken = encoded;
+					});
+					
+					documents = {
+						"projectName" : "cloudmall",
+						"description" : "tea-openerp token",
+						"host" : "46.137.212.8",
+						"port" : 8069,
+						"db_name" : "cloudmall-dev",
+						"db_uid" : value,
+						"db_user" : "admin",
+						"db_pass" : dbPass,
+						"accessToken" : accessToken
+					};
 				
-				newCloudmallToken(documents);
+					newCloudmallToken(documents);
+				}
 			});
 		} else {
-			console.log("***************** TOKEN FOUND");
+			console.log("\n\n***************** TOKEN FOUND");
 			getCloudmallTokenDetails(token);
 		}
 	});
@@ -60,19 +93,27 @@ function getCloudmallTokenDetails(token) {
 	var json = { "accessToken" : token };
 	
 	teaClient.post('/getTokenDetails', json, function(err, req, res, obj) {
-		console.log("***************** LOGIN");
+		console.log("\n\n***************** LOGIN");
+		
+		var dbPass;	
+		decypt(obj.db_pass, function (decoded) {
+			dbPass = decoded;
+		});
+		
 		// Sends a method call to the XML-RPC server
-		client.methodCall('login', [obj.db_name, obj.db_user, obj.db_pass], function (error, value) {
+		client.methodCall('login', [obj.db_name, obj.db_user, dbPass], function (error, value) {
 			if (error) console.log("error:", error);
 			console.log('Method response: ', value)
 				
-			readPartners(obj);
+			if (typeof value != "undefined" && value != null && value != false) {
+				readPartners(obj);
+			}
 		});
 	});
 }
 
 function newCloudmallToken(documents) {
-	console.log("\n\n***************** CREATE NEW TOKEN AND GET DETAILS");
+	console.log("\n\n***************** NEW TOKEN - GET DETAILS");
 	
 	// Get a connection to TEA ready, so we'll be able to create new token and get it's details
 	var teaClient = restify.createJsonClient({
@@ -87,10 +128,15 @@ function newCloudmallToken(documents) {
 function readPartners(tokenDetails) {
 	console.log("\n\n***************** READ PARTNERS");
 
+	var dbPass;	
+	decypt(tokenDetails.db_pass, function (decoded) {
+		dbPass = decoded;
+	});
+
 	var params = [
 		tokenDetails.db_name,
 		tokenDetails.db_uid,
-		tokenDetails.db_pass,
+		dbPass,
 		'res.partner',
 		'read',
 		[ 3, 4 ], // IDs
@@ -113,10 +159,15 @@ function readPartners(tokenDetails) {
 function searchPartners(tokenDetails) {
 	console.log("\n\n***************** SEARCH PARTNERS");
 
+	var dbPass;
+	decypt(tokenDetails.db_pass, function (decoded) {
+		dbPass = decoded;
+	});
+	
 	var params = [
 		tokenDetails.db_name,
 		tokenDetails.db_uid,
-		tokenDetails.db_pass,
+		dbPass,
 		'res.partner',
 		'search',
 		[] // criteria
@@ -151,12 +202,10 @@ function searchPartners(tokenDetails) {
 			}
 			index += remaining;
 			
-			
-			
 			var params = [
 				tokenDetails.db_name,
 				tokenDetails.db_uid,
-				tokenDetails.db_pass,
+				dbPass,
 				'res.partner',
 				'read',
 				ids,
@@ -204,10 +253,15 @@ function searchCategories(tokenDetails) {
 	    url: 'http://localhost:8080'
 	});
 
+	var dbPass;
+	decypt(tokenDetails.db_pass, function (decoded) {
+		dbPass = decoded;
+	});
+
 	var params = [
 		tokenDetails.db_name,
 		tokenDetails.db_uid,
-		tokenDetails.db_pass,
+		dbPass,
 		'product.category',
 		'search',
 		[] // criteria
@@ -241,13 +295,11 @@ function searchCategories(tokenDetails) {
 				ids.push(id);
 			}
 			index += remaining;
-			
-			
-			
+						
 			var params = [
 				tokenDetails.db_name,
 				tokenDetails.db_uid,
-				tokenDetails.db_pass,
+				dbPass,
 				'product.category',
 				'read',
 				ids,
@@ -399,12 +451,16 @@ function searchProducts(tokenDetails) {
 	    url: 'http://localhost:8080'
 	});
 
+	var dbPass;
+	decypt(tokenDetails.db_pass, function (decoded) {
+		dbPass = decoded;
+	});
 
 	// Use XMLRPC to get products from OpenERP
 	var params = [
 		tokenDetails.db_name,
 		tokenDetails.db_uid,
-		tokenDetails.db_pass,
+		dbPass,
 		'product.product',
 		'search',
 		[] // criteria
@@ -440,12 +496,11 @@ function searchProducts(tokenDetails) {
 			}
 			var newIndex = index + remaining;
 			
-			
 			// Now get a specific product's details
 			var params = [
 				tokenDetails.db_name,
 				tokenDetails.db_uid,
-				tokenDetails.db_pass,
+				dbPass,
 				'product.product',
 				'read',
 				ids,
