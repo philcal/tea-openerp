@@ -543,7 +543,7 @@ function searchProducts(tokenDetails) {
 				// 		{ "price": 992.89, "external_id": "junk-998", "name": "Red shoes" }
 				// 	]
 				// };
-				teaClient.post('/product', json, function(err, req, res, obj) {
+				teaClient.post('/productOpenErp', json, function(err, req, res, obj) {
 					//	console.log('%d -> %j', res.statusCode, res.headers);
 				    console.log('%j', obj);
 				 	getNext(newIndex);
