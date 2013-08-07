@@ -1,6 +1,7 @@
 var xmlrpc = require('xmlrpc'),
 	restify = require('restify'),
-	crypto = require('crypto');
+	crypto = require('crypto'),
+	config = require('./config');
 
 // Creates an XML-RPC client. Passes the host information on where to
 // make the XML-RPC calls.
@@ -35,7 +36,7 @@ function getCloudmallToken() {
 	
 	// Get a connection to TEA ready, so we'll be able to get a token
 	var teaClient = restify.createJsonClient({
-	    url: 'http://localhost:8080'
+	    url: config.teaClientConfig.url
 	});
 	
 	var json = { "projectName" : "cloudmall" };
@@ -87,7 +88,7 @@ function getCloudmallTokenDetails(token) {
 	
 	// Get a connection to TEA ready, so we'll be able to get token details
 	var teaClient = restify.createJsonClient({
-	    url: 'http://localhost:8080'
+	    url: config.teaClientConfig.url
 	});
 	
 	var json = { "accessToken" : token };
@@ -117,7 +118,7 @@ function newCloudmallToken(documents) {
 	
 	// Get a connection to TEA ready, so we'll be able to create new token and get it's details
 	var teaClient = restify.createJsonClient({
-	    url: 'http://localhost:8080'
+	    url: config.teaClientConfig.url
 	});
 	
 	teaClient.post('/getNewToken', documents, function(err, req, res, obj) {
@@ -250,7 +251,7 @@ function searchCategories(tokenDetails) {
 	
 	// Get a connection to TEA ready, so we'll be able to send our updates
 	var teaClient = restify.createJsonClient({
-	    url: 'http://localhost:8080'
+	    url: config.teaClientConfig.url
 	});
 
 	var dbPass;
@@ -448,7 +449,7 @@ function searchProducts(tokenDetails) {
 	
 	// Get a connection to TEA ready, so we'll be able to send our updates
 	var teaClient = restify.createJsonClient({
-	    url: 'http://localhost:8080'
+	    url: config.teaClientConfig.url
 	});
 
 	var dbPass;
