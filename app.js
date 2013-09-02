@@ -3,8 +3,8 @@ var xmlrpc = require('xmlrpc'),
 	crypto = require('crypto'),
 	config = require('./config');
 
-// Creates an XML-RPC client. Passes the host information on where to
-// make the XML-RPC calls.
+//Creates an XML-RPC client. Passes the host information on where to
+//make the XML-RPC calls.
 var client = xmlrpc.createClient({ host: '46.137.212.8', port: 8069, path: '/xmlrpc/common'})
 
 var encypt = function (input, callback) {
@@ -29,7 +29,7 @@ var decypt = function (input, callback) {
     callback(decoded);
 };
 
-getCloudmallToken();
+//getCloudmallToken();
 
 function getCloudmallToken() {
 	console.log("\n\n***************** GET TOKEN");
@@ -39,47 +39,48 @@ function getCloudmallToken() {
 	    url: config.teaClientConfig.url
 	});
 	
-	var json = { "projectName" : "cloudmall" };
+	var json = { "storeId" : "1" };
 	
 	teaClient.post('/getToken', json, function(err, req, res, obj) {
 		var token = obj.access_token;
-		if (token == null || token == "") {
-			console.log("\n\n***************** NO TOKEN FOUND");
-			var documents = [ ];
-			console.log("\n\n***************** LOGIN");
-			// Sends a method call to the XML-RPC server
-			client.methodCall('login', ['cloudmall-dev', 'admin', 'mouse1'], function (error, value) {
-				if (error) console.log("error:", error);
-				console.log('Method response: ', value)
-				
-				if (typeof value != "undefined" && value != null && value != false) {
-					var dbPass, accessToken;
-					encypt('mouse1', function (encoded) {
-						dbPass = encoded;
-					});
-					encypt('cloudmall|' + value, function (encoded) {
-						accessToken = encoded;
-					});
-					
-					documents = {
-						"projectName" : "cloudmall",
-						"description" : "tea-openerp token",
-						"host" : "46.137.212.8",
-						"port" : 8069,
-						"db_name" : "cloudmall-dev",
-						"db_uid" : value,
-						"db_user" : "admin",
-						"db_pass" : dbPass,
-						"accessToken" : accessToken
-					};
-				
-					newCloudmallToken(documents);
-				}
-			});
-		} else {
-			console.log("\n\n***************** TOKEN FOUND");
-			getCloudmallTokenDetails(token);
-		}
+		// if (token == null || token == "") {
+		// 			console.log("\n\n***************** NO TOKEN FOUND");
+		// 			var documents = [ ];
+		// 			console.log("\n\n***************** LOGIN");
+		// 			
+		// 			// Sends a method call to the XML-RPC server
+		// 			client.methodCall('login', ['cloudmall-dev', 'admin', 'mouse1'], function (error, value) {
+		// 				if (error) console.log("error:", error);
+		// 				console.log('Method response: ', value)
+		// 				
+		// 				if (typeof value != "undefined" && value != null && value != false) {
+		// 					var dbPass, accessToken;
+		// 					encypt('mouse1', function (encoded) {
+		// 						dbPass = encoded;
+		// 					});
+		// 					encypt('cloudmall|' + value, function (encoded) {
+		// 						accessToken = encoded;
+		// 					});
+		// 					
+		// 					documents = {
+		// 						"projectName" : "cloudmall",
+		// 						"description" : "tea-openerp token",
+		// 						"host" : "46.137.212.8",
+		// 						"port" : 8069,
+		// 						"db_name" : "cloudmall-dev",
+		// 						"db_uid" : value,
+		// 						"db_user" : "admin",
+		// 						"db_pass" : dbPass,
+		// 						"accessToken" : accessToken
+		// 					};
+		// 				
+		// 					newCloudmallToken(documents);
+		// 				}
+		// 			});
+		// 		} else {
+		// 			console.log("\n\n***************** TOKEN FOUND");
+		// 			getCloudmallTokenDetails(token);
+		// 		}
 	});
 }
 
@@ -126,18 +127,29 @@ function newCloudmallToken(documents) {
 	});
 }
 
-function readPartners(tokenDetails) {
+
+/****** Start the OpenERP ******/
+
+startTeaOpenERP();
+
+function startTeaOpenERP() {
+	readPartners();
+}
+
+/****** Start the OpenERP ******/
+
+function readPartners() {
 	console.log("\n\n***************** READ PARTNERS");
 
-	var dbPass;	
-	decypt(tokenDetails.db_pass, function (decoded) {
-		dbPass = decoded;
-	});
+	// var dbPass;	
+	// decypt(tokenDetails.db_pass, function (decoded) {
+	// 	dbPass = decoded;
+	// });
 
 	var params = [
-		tokenDetails.db_name,
-		tokenDetails.db_uid,
-		dbPass,
+		'cloudmall-dev',
+		1,
+		'mouse1',
 		'res.partner',
 		'read',
 		[ 3, 4 ], // IDs
@@ -151,24 +163,28 @@ function readPartners(tokenDetails) {
 		console.log('Method response: ', value);
 		
 		// Move on to the next
-		searchProducts(tokenDetails);
+		// searchProducts();
+		// searchCategories();
 		
-		searchCategories(tokenDetails);
+		searchUser();
+		searchCurrency();
+		searchStore();
+		
 	});
 }
 
-function searchPartners(tokenDetails) {
+function searchPartners() {
 	console.log("\n\n***************** SEARCH PARTNERS");
 
-	var dbPass;
-	decypt(tokenDetails.db_pass, function (decoded) {
-		dbPass = decoded;
-	});
+	// var dbPass;
+	// decypt(tokenDetails.db_pass, function (decoded) {
+	// 	dbPass = decoded;
+	// });
 	
 	var params = [
-		tokenDetails.db_name,
-		tokenDetails.db_uid,
-		dbPass,
+		'cloudmall-dev',
+		1,
+		'mouse1',
 		'res.partner',
 		'search',
 		[] // criteria
@@ -204,9 +220,9 @@ function searchPartners(tokenDetails) {
 			index += remaining;
 			
 			var params = [
-				tokenDetails.db_name,
-				tokenDetails.db_uid,
-				dbPass,
+				'cloudmall-dev',
+				1,
+				'mouse1',
 				'res.partner',
 				'read',
 				ids,
@@ -246,7 +262,7 @@ function searchPartners(tokenDetails) {
  *	    id: 10,
  *	    property_stock_account_output_categ: false }
 */
-function searchCategories(tokenDetails) {
+function searchCategories() {
 	console.log("\n\n***************** SEARCH CATEGORIES");
 	
 	// Get a connection to TEA ready, so we'll be able to send our updates
@@ -254,15 +270,15 @@ function searchCategories(tokenDetails) {
 	    url: config.teaClientConfig.url
 	});
 
-	var dbPass;
-	decypt(tokenDetails.db_pass, function (decoded) {
-		dbPass = decoded;
-	});
+	// var dbPass;
+	// decypt(tokenDetails.db_pass, function (decoded) {
+	// 	dbPass = decoded;
+	// });
 
 	var params = [
-		tokenDetails.db_name,
-		tokenDetails.db_uid,
-		dbPass,
+		'cloudmall-dev',
+		1,
+		'mouse1',
 		'product.category',
 		'search',
 		[] // criteria
@@ -298,9 +314,9 @@ function searchCategories(tokenDetails) {
 			index += remaining;
 						
 			var params = [
-				tokenDetails.db_name,
-				tokenDetails.db_uid,
-				dbPass,
+				'cloudmall-dev',
+				1,
+				'mouse1',
 				'product.category',
 				'read',
 				ids,
@@ -444,7 +460,7 @@ function searchCategories(tokenDetails) {
     property_account_expense: false,
     taxes_id: [] }
 */
-function searchProducts(tokenDetails) {
+function searchProducts() {
 	console.log("\n\n***************** Upload products");
 	
 	// Get a connection to TEA ready, so we'll be able to send our updates
@@ -452,16 +468,16 @@ function searchProducts(tokenDetails) {
 	    url: config.teaClientConfig.url
 	});
 
-	var dbPass;
-	decypt(tokenDetails.db_pass, function (decoded) {
-		dbPass = decoded;
-	});
+	// var dbPass;
+	// decypt(tokenDetails.db_pass, function (decoded) {
+	// 	dbPass = decoded;
+	// });
 
 	// Use XMLRPC to get products from OpenERP
 	var params = [
-		tokenDetails.db_name,
-		tokenDetails.db_uid,
-		dbPass,
+		'cloudmall-dev',
+		1,
+		'mouse1',
 		'product.product',
 		'search',
 		[] // criteria
@@ -499,9 +515,9 @@ function searchProducts(tokenDetails) {
 			
 			// Now get a specific product's details
 			var params = [
-				tokenDetails.db_name,
-				tokenDetails.db_uid,
-				dbPass,
+				'cloudmall-dev',
+				1,
+				'mouse1',
 				'product.product',
 				'read',
 				ids,
@@ -557,3 +573,410 @@ function searchProducts(tokenDetails) {
 		
 	});
 }
+
+// 
+// /**
+//  *	Res.User {
+// 		id: 1,
+// 		active: true,
+// 		login: admin,
+// 		password: mouse1,
+// 		company_id: 1,
+// 		partner_id: 3,
+// 		create_uid: 3,
+// 		create_date: 2013-05-20 22:14:08.864469,
+// 		write_date: 2013-08-13 06:45:30.853708,
+// 		write_uid: 1,
+// 		menu_id: 1,
+// 		login_date: 2013-08-30,
+// 		signature_text: -- Administrator,
+// 		action_id: 511,
+// 		alias_id: 1,
+// 		share: false,
+// 		pos_config: 1,
+// 		ean13: 0410100000006,
+// 		oauth_access: ,
+// 		oauth_id:  ,
+// 		oauth_provider_id: ,
+// 		default_section_id: ,
+// 	}
+// *
+// **/
+
+function searchUser() {
+	console.log("\n\n***************** Upload Users");
+	
+	// Get a connection to TEA ready, so we'll be able to send our updates
+	var teaClient = restify.createJsonClient({
+	    url: config.teaClientConfig.url
+	});
+
+	// Use XMLRPC to get products from OpenERP
+	var params = [
+		'cloudmall-dev',
+		1,
+		'mouse1',
+		'res.users',
+		'search',
+		[] // criteria
+	];
+	client.setPathname('/xmlrpc/object');
+	client.methodCall('execute', params, function(error, value) {
+		// Results of the method response
+		if (error) console.log("error:", error);
+		console.log('Method response: ', value);
+		
+		// Load each of these in term
+		var record_ids = value;
+		var num_records = record_ids.length;
+
+		var MAX_BATCH_SIZE = 5;
+		console.log("Num =" + num_records)
+
+		var getNext = function(index) {
+			console.log("------------------- " + index);
+			if (index >= num_records) {
+				return; // all finished
+			}
+
+			// Get a limited number at a time
+			var remaining = num_records - index;
+			if (remaining > MAX_BATCH_SIZE) {
+				remaining = MAX_BATCH_SIZE;
+			}
+			var ids = [ ];
+			for (var i = 0; i < remaining; i++) {
+				var id = record_ids[index + i];
+				ids.push(id);
+			}
+			var newIndex = index + remaining;
+			
+			// Now get a specific product's details
+			var params = [
+				'cloudmall-dev',
+				1,
+				'mouse1',
+				'res.users',
+				'read',
+				ids,
+				[ 'id', 'active', 'login', 'password', 'company_id']
+			];
+			client.setPathname('/xmlrpc/object');
+			client.methodCall('execute', params, function(error, value) {
+				// Results of the method response
+				if (error) console.log("error:", error);
+				console.log('Method response: ', value);
+				
+				// // Load it into SOLR
+				var documents = value;
+				// solr.addDocument(documents, function(err){
+				// 	if (err) throw err;
+				 	// getNext(index);
+				// });
+
+				// Send this product to TEA
+				var json = {
+					source: "junk",
+					users: [ ]
+				};
+				
+				// Prepare the message to send to TEA's RESTful interface
+				for (var i = 0; i < documents.length; i++) {
+					var user = documents[i];
+					
+					// Change the id to 'external_id'
+					var id = user.id;
+					delete user.id;
+					user.external_id = id;
+					
+					json.users.push(user);
+				}
+					
+				// jsonForTEA.products.push(
+				// 	{ "price": 1.25, "external_id": "junk-999", "name": "Smelly shoes" },
+				// 		{ "price": 992.89, "external_id": "junk-998", "name": "Red shoes" }
+				// 	]
+				// };
+				teaClient.post('/user', json, function(err, req, res, obj) {
+					//	console.log('%d -> %j', res.statusCode, res.headers);
+				    console.log('%j', obj);
+				 	getNext(newIndex);
+				});
+			});
+		};
+
+		// Start selecting
+		getNext(0);
+		
+	});
+}
+
+/**
+* res.currency {
+	id: 1,
+	name: eur,
+	create_uid: 1,
+	create_date: 2013-05-20 22:14:08.864469,
+	write_date: 2013-05-20 22:14:08.864469,
+	write_uid: 1,
+	rounding: 0.010000,
+	symbol: $,
+	company_id: 1,
+	date: ,
+	base: false,
+	active: true,
+	position: after,
+	accuracy: 4 
+}
+*
+**/
+
+function searchCurrency() {
+	console.log("\n\n***************** Upload Currencies");
+	
+	// Get a connection to TEA ready, so we'll be able to send our updates
+	var teaClient = restify.createJsonClient({
+	    url: config.teaClientConfig.url
+	});
+
+	// Use XMLRPC to get products from OpenERP
+	var params = [
+		'cloudmall-dev',
+		1,
+		'mouse1',
+		'res.currency',
+		'search',
+		[] // criteria
+	];
+	client.setPathname('/xmlrpc/object');
+	client.methodCall('execute', params, function(error, value) {
+		// Results of the method response
+		if (error) console.log("error:", error);
+		console.log('Method response: ', value);
+		
+		// Load each of these in term
+		var record_ids = value;
+		var num_records = record_ids.length;
+
+		var MAX_BATCH_SIZE = 5;
+		console.log("Num =" + num_records)
+
+		var getNext = function(index) {
+			console.log("------------------- " + index);
+			if (index >= num_records) {
+				return; // all finished
+			}
+
+			// Get a limited number at a time
+			var remaining = num_records - index;
+			if (remaining > MAX_BATCH_SIZE) {
+				remaining = MAX_BATCH_SIZE;
+			}
+			var ids = [ ];
+			for (var i = 0; i < remaining; i++) {
+				var id = record_ids[index + i];
+				ids.push(id);
+			}
+			var newIndex = index + remaining;
+			
+			// Now get a specific product's details
+			var params = [
+				'cloudmall-dev',
+				1,
+				'mouse1',
+				'res.currency',
+				'read',
+				ids,
+				[ 'id', 'name', 'rounding', 'symbol', 'accuracy']
+			];
+			client.setPathname('/xmlrpc/object');
+			client.methodCall('execute', params, function(error, value) {
+				// Results of the method response
+				if (error) console.log("error:", error);
+				console.log('Method response: ', value);
+				
+				// // Load it into SOLR
+				var documents = value;
+				// solr.addDocument(documents, function(err){
+				// 	if (err) throw err;
+				 	// getNext(index);
+				// });
+
+				// Send this product to TEA
+				var json = {
+					source: "junk",
+					currencies: [ ]
+				};
+				
+				// Prepare the message to send to TEA's RESTful interface
+				for (var i = 0; i < documents.length; i++) {
+					var currency = documents[i];
+					
+					// Change the id to 'external_id'
+					var id = currency.id;
+					delete currency.id;
+					currency.external_id = id;
+					
+					json.currencies.push(currency);
+				}
+					
+				// jsonForTEA.products.push(
+				// 	{ "price": 1.25, "external_id": "junk-999", "name": "Smelly shoes" },
+				// 		{ "price": 992.89, "external_id": "junk-998", "name": "Red shoes" }
+				// 	]
+				// };
+				teaClient.post('/currency', json, function(err, req, res, obj) {
+					//	console.log('%d -> %j', res.statusCode, res.headers);
+				    console.log('%j', obj);
+				 	getNext(newIndex);
+				});
+			});
+		};
+
+		// Start selecting
+		getNext(0);
+		
+	});
+}
+
+/**
+	res.company {
+	
+*	id: 1,
+*	name: SUNION,
+*	parent_id: 1,
+*	partner_id: 1,
+*	currency_id: 25,
+*	create_uid: 1,
+*	create_date: "2013-05-21 11:03:59.441973",
+*	write_date: "2013-06-11 00:42:25.026017",
+*	write_uid: 1,
+* 	rml_footer: "",
+* 	rml_header: <>,
+*	paper_format: "a4",
+*	logo_web: <binary data>
+* 	rml_header2: "",
+*	rml_header3: "",
+*	rml_header1: "",
+*	account_no: "",
+*	company_registry: "",
+*	custom_footer: "",
+* 	expects_chart_of_accounts: true,
+*	paypal_account: "",
+*	overdue_msg: "",
+*	tax_calculation_rounding_method: "round_per_line",
+*	expense_currency_exchange_account_id: "",
+*	income_currency_exchange: "",
+*	schedule_range: 730,
+*	security_lead: 0,
+*	po_lead: 1,
+*	project_time_mode_id: 5
+*
+}
+**/
+
+function searchStore() {
+	console.log("\n\n***************** Upload Stories");
+	
+	// Get a connection to TEA ready, so we'll be able to send our updates
+	var teaClient = restify.createJsonClient({
+	    url: config.teaClientConfig.url
+	});
+
+	// Use XMLRPC to get products from OpenERP
+	var params = [
+		'cloudmall-dev',
+		1,
+		'mouse1',
+		'res.company',
+		'search',
+		[] // criteria
+	];
+	client.setPathname('/xmlrpc/object');
+	client.methodCall('execute', params, function(error, value) {
+		// Results of the method response
+		if (error) console.log("error:", error);
+		console.log('Method response: ', value);
+		
+		// Load each of these in term
+		var record_ids = value;
+		var num_records = record_ids.length;
+
+		var MAX_BATCH_SIZE = 5;
+		console.log("Num =" + num_records);
+		
+		
+
+		var getNext = function(index) {
+			console.log("------------------- " + index);
+			if (index >= num_records) {
+				return; // all finished
+			}
+
+			// Get a limited number at a time
+			var remaining = num_records - index;
+			if (remaining > MAX_BATCH_SIZE) {
+				remaining = MAX_BATCH_SIZE;
+			}
+			var ids = [ ];
+			for (var i = 0; i < remaining; i++) {
+				var id = record_ids[index + i];
+				ids.push(id);
+			}
+			var newIndex = index + remaining;
+			
+			// Now get a specific product's details
+			var params = [
+				'cloudmall-dev',
+				1,
+				'mouse1',
+				'res.company',
+				'read',
+				ids,
+				[ 'id', 'name', 'parent_id', 'currency_id', 'partner_id']
+			];
+			client.setPathname('/xmlrpc/object');
+			client.methodCall('execute', params, function(error, value) {
+				// Results of the method response
+				if (error) console.log("error:", error);
+				console.log('Method response: ', value);
+				
+				// // Load it into SOLR
+				var documents = value;
+	
+				// Send this product to TEA
+				var json = {
+					source: "junk",
+					stores: [ ]
+				};
+				
+				
+				// Prepare the message to send to TEA's RESTful interface
+				for (var i = 0; i < documents.length; i++) {
+					var store = documents[i];
+					
+					// Change the id to 'external_id'
+					var id = store.id;
+					delete store.id;
+					store.external_id = id;
+					
+					json.stores.push(store);
+				}
+
+				teaClient.post('/store', json, function(err, req, res, obj) {
+					//	console.log('%d -> %j', res.statusCode, res.headers);
+				    console.log('%j', obj);
+				 	getNext(newIndex);
+				});
+			});
+		};
+
+		// Start selecting
+		getNext(0);
+		
+	});
+}
+
+
+
+
