@@ -43,8 +43,8 @@ function readPartners() {
 		console.log('Method response: ', value);
 		
 		// Move on to the next
-		// searchProducts();
-		// searchCategories();
+		searchProducts();
+		searchCategories();
 		
 		searchUser();
 		searchCurrency();
