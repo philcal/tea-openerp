@@ -43,9 +43,10 @@ function readPartners() {
 		console.log('Method response: ', value);
 		
 		// Move on to the next
-		searchProducts();
-		searchCategories();
 		
+		searchCategories(function() {
+			searchProducts();
+		});
 		searchUser();
 		searchCurrency();
 		searchStore();
@@ -142,7 +143,7 @@ function searchPartners() {
  *	    id: 10,
  *	    property_stock_account_output_categ: false }
 */
-function searchCategories() {
+function searchCategories(callback) {
 	console.log("\n\n***************** SEARCH CATEGORIES");
 	
 	// Get a connection to TEA ready, so we'll be able to send our updates
@@ -248,6 +249,8 @@ function searchCategories() {
 		getNext(0);
 		
 	});
+
+	callback();
 }
 
 
