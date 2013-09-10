@@ -1,7 +1,11 @@
-var xmlrpc = require('xmlrpc'),
-	restify = require('restify'),
-	crypto = require('crypto'),
-	config = require('./config');
+var xmlrpc = require('xmlrpc');
+var	restify = require('restify');
+var	crypto = require('crypto');
+var	config = require('./config');
+	
+var OPENERP_LOGIN = config.openERPConfig.login;
+var OPENERP_USERID = config.openERPConfig.userId;
+var OPENERP_PASSWORD = config.openERPConfig.password;
 
 //Creates an XML-RPC client. Passes the host information on where to
 //make the XML-RPC calls.
@@ -27,9 +31,9 @@ function readPartners() {
 	// });
 
 	var params = [
-		'cloudmall-dev',
-		1,
-		'mouse1',
+		OPENERP_LOGIN,
+		OPENERP_USERID,
+		OPENERP_PASSWORD,
 		'res.partner',
 		'read',
 		[ 3, 4 ], // IDs
@@ -61,9 +65,9 @@ function searchPartners() {
 	// });
 	
 	var params = [
-		'cloudmall-dev',
-		1,
-		'mouse1',
+		OPENERP_LOGIN,
+		OPENERP_USERID,
+		OPENERP_PASSWORD,
 		'res.partner',
 		'search',
 		[] // criteria
@@ -99,9 +103,9 @@ function searchPartners() {
 			index += remaining;
 			
 			var params = [
-				'cloudmall-dev',
-				1,
-				'mouse1',
+				OPENERP_LOGIN,
+				OPENERP_USERID,
+				OPENERP_PASSWORD,
 				'res.partner',
 				'read',
 				ids,
@@ -155,9 +159,9 @@ function searchCategories() {
 	// });
 
 	var params = [
-		'cloudmall-dev',
-		1,
-		'mouse1',
+		OPENERP_LOGIN,
+		OPENERP_USERID,
+		OPENERP_PASSWORD,
 		'product.category',
 		'search',
 		[] // criteria
@@ -194,9 +198,9 @@ function searchCategories() {
 			index += remaining;
 						
 			var params = [
-				'cloudmall-dev',
-				1,
-				'mouse1',
+				OPENERP_LOGIN,
+				OPENERP_USERID,
+				OPENERP_PASSWORD,
 				'product.category',
 				'read',
 				ids,
@@ -355,9 +359,9 @@ function searchProducts() {
 
 	// Use XMLRPC to get products from OpenERP
 	var params = [
-		'cloudmall-dev',
-		1,
-		'mouse1',
+		OPENERP_LOGIN,
+		OPENERP_USERID,
+		OPENERP_PASSWORD,
 		'product.product',
 		'search',
 		[] // criteria
@@ -395,9 +399,9 @@ function searchProducts() {
 			
 			// Now get a specific product's details
 			var params = [
-				'cloudmall-dev',
-				1,
-				'mouse1',
+				OPENERP_LOGIN,
+				OPENERP_USERID,
+				OPENERP_PASSWORD,
 				'product.product',
 				'read',
 				ids,
@@ -493,9 +497,9 @@ function searchUser() {
 
 	// Use XMLRPC to get products from OpenERP
 	var params = [
-		'cloudmall-dev',
-		1,
-		'mouse1',
+		OPENERP_LOGIN,
+		OPENERP_USERID,
+		OPENERP_PASSWORD,
 		'res.users',
 		'search',
 		[] // criteria
@@ -621,9 +625,9 @@ function searchCurrency() {
 
 	// Use XMLRPC to get products from OpenERP
 	var params = [
-		'cloudmall-dev',
-		1,
-		'mouse1',
+		OPENERP_LOGIN,
+		OPENERP_USERID,
+		OPENERP_PASSWORD,
 		'res.currency',
 		'search',
 		[] // criteria
@@ -661,9 +665,9 @@ function searchCurrency() {
 			
 			// Now get a specific product's details
 			var params = [
-				'cloudmall-dev',
-				1,
-				'mouse1',
+				OPENERP_LOGIN,
+				OPENERP_USERID,
+				OPENERP_PASSWORD,
 				'res.currency',
 				'read',
 				ids,
@@ -765,9 +769,9 @@ function searchStore() {
 
 	// Use XMLRPC to get products from OpenERP
 	var params = [
-		'cloudmall-dev',
-		1,
-		'mouse1',
+		OPENERP_LOGIN,
+		OPENERP_USERID,
+		OPENERP_PASSWORD,
 		'res.company',
 		'search',
 		[] // criteria
@@ -807,9 +811,9 @@ function searchStore() {
 			
 			// Now get a specific product's details
 			var params = [
-				'cloudmall-dev',
-				1,
-				'mouse1',
+				OPENERP_LOGIN,
+				OPENERP_USERID,
+				OPENERP_PASSWORD,
 				'res.company',
 				'read',
 				ids,
