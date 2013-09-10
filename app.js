@@ -44,9 +44,7 @@ function readPartners() {
 		
 		// Move on to the next
 		
-		searchCategories(function() {
-			searchProducts();
-		});
+		searchCategories();
 		searchUser();
 		searchCurrency();
 		searchStore();
@@ -143,7 +141,7 @@ function searchPartners() {
  *	    id: 10,
  *	    property_stock_account_output_categ: false }
 */
-function searchCategories(callback) {
+function searchCategories() {
 	console.log("\n\n***************** SEARCH CATEGORIES");
 	
 	// Get a connection to TEA ready, so we'll be able to send our updates
@@ -179,6 +177,7 @@ function searchCategories(callback) {
 		var getNext = function(index) {
 			console.log("------------------- " + index);
 			if (index >= num_records) {
+				searchProducts();
 				return; // all finished
 			}
 
@@ -249,8 +248,6 @@ function searchCategories(callback) {
 		getNext(0);
 		
 	});
-
-	callback();
 }
 
 
