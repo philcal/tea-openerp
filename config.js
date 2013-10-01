@@ -3,16 +3,16 @@ exports.teaClientConfig = {
 };
 
 
-/** shoe store **/
-exports.openERPConfig = {
-	login: 'shoe-store',
-	userId: 1,
-	password: 'mouse123'
-};
-
-// /** cloudmall dev - metrosix **/
+// /** shoe store **/
 // exports.openERPConfig = {
-// 	login: 'cloudmall-dev',
+// 	login: 'shoe-store',
 // 	userId: 1,
-// 	password: 'mouse1'
+// 	password: 'mouse123'
 // };
+
+/** cloudmall dev - metrosix **/
+exports.openERPConfig = {
+	login: 'cloudmall-dev',
+	userId: 1,
+	password: 'mouse1'
+};
