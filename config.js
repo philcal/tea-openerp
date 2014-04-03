@@ -1,18 +1,10 @@
 exports.teaClientConfig = {
-	url: 'http://localhost:8080'
+	url: 'http://localhost:3000'
 };
 
-
-// /** shoe store **/
-// exports.openERPConfig = {
-// 	login: 'shoe-store',
-// 	userId: 1,
-// 	password: 'mouse123'
-// };
-
-/** cloudmall dev - metrosix **/
+//OpenERP configurations
 exports.openERPConfig = {
-	login: 'cloudmall-dev',
+	login: 'metrosix-dev',
 	userId: 1,
-	password: 'mouse1'
+	password: 'M37r051x'
 };
